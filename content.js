@@ -37,6 +37,8 @@ function removePictures() {
         removeAllClassEl('_3nhoI')
         removeAllClassEl('_3ujPS')
         removeAllClassEl('ymInT')
+        removeAllClassEl('_6ebFV')
+        removeAllClassEl('AkZ3C')
         addHeader('SMH')
     }  else if (url.startsWith('https://www.brisbanetimes.com.au/') && url !== 'https://www.brisbanetimes.com.au/') {
         removeAllClassEl('_3nhoI')
@@ -45,9 +47,10 @@ function removePictures() {
         addHeader('Brisbane Times')
     } else if (url.startsWith('https://www.canberratimes.com.au/') && url !== 'https://www.canberratimes.com.au/') {
         removeAllClassEl('lead-image media')
-        removeAllClassEl('story-generic__iframe');
+        removeAllClassEl('story-generic__iframe')
+        removeAllClassEl('story-image');
         [...document.getElementsByClassName('assets')].filter(x => x.firstElementChild && x.firstElementChild.firstElementChild && x.firstElementChild.firstElementChild.innerText === 'READ MORE:').forEach(x => x.parentElement.remove());
-        [...document.querySelectorAll('a')].filter(x => x.parentElement && x.parentElement.nodeName === 'LI' && x.parentElement.className !== 'signature__name').forEach(x => x.parentElement.remove())
+        // [...document.querySelectorAll('a')].filter(x => x.parentElement && x.parentElement.nodeName === 'LI' && x.parentElement.className !== 'signature__name').forEach(x => x.parentElement.remove())
         addHeader('CT')
     } else if (url.startsWith('https://www.themandarin.com.au/') && url !== 'https://www.themandarin.com.au/') {
         [...document.querySelectorAll('figure')].forEach(x => x.remove())
@@ -135,7 +138,8 @@ function addHeader(outletName) {
         if (document.getElementsByClassName('_3la2-').length > 0) headline = document.getElementsByClassName('_3la2-')[0].children[1].innerText
         else headline = document.getElementsByClassName('JwYux')[0].children[1].innerText
         if (document.getElementsByClassName('_1bFgK').length > 0) byline = document.getElementsByClassName('_1bFgK')[0].children[0].innerText
-        else byline = document.getElementsByClassName('_2FyET')[0].innerText.slice(3)
+        else if (document.getElementsByClassName('_2FyET').length > 0) byline = document.getElementsByClassName('_2FyET')[0].innerText.slice(3)
+        else byline = ''
         outlet = window.location.href.toString().startsWith('https://www.smh.com.au/') ? 'Sydney Morning Herald' : 'Age'
         firstPara = document.getElementsByClassName('_1665V')[0].firstElementChild.innerText
         document.getElementsByClassName('_1665V')[0].firstElementChild.innerText = `${headline}\n${outlet}\n${date}\n${byline}\n\n${firstPara}`
@@ -151,10 +155,17 @@ function addHeader(outletName) {
         return
     case 'CT':
         headline = document.getElementsByClassName('name headline')[0].innerText
-        byline = document.getElementsByClassName('story-header__author-name-link')[0].innerText
+        if (document.getElementsByClassName('story-header__author-name-link').length > 0) byline = document.getElementsByClassName('story-header__author-name-link')[0].innerText
+        else byline = ''
         outlet = 'Canberra Times'
-        firstPara = document.getElementsByClassName('subscribe-truncate')[0].firstElementChild.firstElementChild.innerText
-        document.getElementsByClassName('subscribe-truncate')[0].firstElementChild.firstElementChild.innerText = `${headline}\n${outlet}\n${date}\n${byline}\n\n${firstPara}`
+        if (document.getElementsByClassName('story-paragraph--lead').length > 0) {
+            firstPara = document.getElementsByClassName('story-paragraph--lead')[0].innerText
+            document.getElementsByClassName('story-paragraph--lead')[0].innerText = `${headline}\n${outlet}\n${date}\n${byline}\n\n${firstPara}`
+        }
+        else {
+            firstPara = document.getElementsByClassName('subscribe-truncate')[0].firstElementChild.firstElementChild.innerText
+            document.getElementsByClassName('subscribe-truncate')[0].firstElementChild.firstElementChild.innerText = `${headline}\n${outlet}\n${date}\n${byline}\n\n${firstPara}`
+        }
         return
     case 'News.com.au':
         if (document.getElementsByClassName('story-headline').length > 0) headline = document.getElementsByClassName('story-headline')[0].innerText
