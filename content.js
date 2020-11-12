@@ -1,14 +1,17 @@
+const defaultOptionObj = { pictureRemove: true, metadata: true }
 let ranAlready = false
+let options
 
 window.onload = async function () {
-    const setting = await getCheckingCaps()
-    if (setting) removePictures()
+    options = await getOptions()
+    console.log(options)
+    if (options.pictureRemove) removePictures()
 }
 
-function getCheckingCaps() {
+function getOptions() {
     return new Promise(options => {
-        chrome.storage.local.get({ pictureRemove: true }, function (data) {
-            options(data.pictureRemove)
+        chrome.storage.local.get({ options: defaultOptionObj }, function (data) {
+            options(data.options)
         })
     })
 }
@@ -49,8 +52,11 @@ function removePictures() {
         removeAllClassEl('lead-image media')
         removeAllClassEl('story-generic__iframe')
         removeAllClassEl('story-image');
-        [...document.getElementsByClassName('assets')].filter(x => x.firstElementChild && x.firstElementChild.firstElementChild && x.firstElementChild.firstElementChild.innerText === 'READ MORE:').forEach(x => x.parentElement.remove());
-        // [...document.querySelectorAll('a')].filter(x => x.parentElement && x.parentElement.nodeName === 'LI' && x.parentElement.className !== 'signature__name').forEach(x => x.parentElement.remove())
+        [...document.getElementsByClassName('assets')]
+            .filter(x => x.firstElementChild && x.firstElementChild.firstElementChild && x.firstElementChild.firstElementChild.innerText === 'READ MORE:').forEach(x => x.parentElement.remove());
+        [...document.querySelectorAll('ul')]
+            .filter(x => x.parentElement && x.parentElement.parentElement && x.parentElement.parentElement.parentElement && x.parentElement.parentElement.parentElement.className === 'article__body news-article-body subscribe-article')
+            .forEach(x => x.parentElement.parentElement.remove())
         addHeader('CT')
     } else if (url.startsWith('https://www.themandarin.com.au/') && url !== 'https://www.themandarin.com.au/') {
         [...document.querySelectorAll('figure')].forEach(x => x.remove())
@@ -65,7 +71,17 @@ function removePictures() {
         removeAllClassEl('w_customHTML')
         removeAllClassEl('tge-imagecaption')
         removeAllClassEl('promoImage image-full')
-        removeAllClassEl('atom-videoplayer')
+        removeAllClassEl('tg-tlc-storyheader_primaryasset')
+        removeAllClassEl('atom-videoplayer');
+        [...document.querySelectorAll('a')]
+            .filter(x => x.parentElement && x.parentElement.innerText === x.innerText && x.parentElement.parentElement && x.parentElement.parentElement.className === 'tg-tlc-storybody cf')
+            .forEach(x => x.parentElement.remove());
+        [...document.querySelectorAll('h2')]
+            .filter(x => x.parentElement && x.parentElement.className === 'tg-tlc-storybody cf')
+            .forEach(x => x.remove());
+        [...document.querySelectorAll('strong')]
+            .filter(x => x.parentElement && x.parentElement.parentElement && x.parentElement.parentElement.className === 'tg-tlc-storybody cf')
+            .forEach(x => x.parentElement.remove())
         addHeader('Courier Mail')
     } else if (url.startsWith('https://www.news.com.au/') && url !== 'https://www.news.com.au/') {
         removeAllClassEl('image')
@@ -94,6 +110,13 @@ function removePictures() {
         removeAllClassEl('tge-imagecaption')
         removeAllClassEl('promoImage image-full')
         removeAllClassEl('atom-videoplayer')
+        removeAllClassEl('tg-tlc-storybody_bulletlist');
+        [...document.querySelectorAll('strong')]
+            .filter(x => x.parentElement && x.parentElement.parentElement && x.parentElement.parentElement.className === 'tg-tlc-storybody cf')
+            .forEach(x => x.parentElement.remove());
+        [...document.querySelectorAll('a')]
+            .filter(x => x.parentElement && x.parentElement.innerText === x.innerText && x.parentElement.parentElement && x.parentElement.parentElement.className === 'tg-tlc-storybody cf')
+            .forEach(x => x.parentElement.remove())
         addHeader('NTN')
     }  else if (url.startsWith('https://thewest.com.au/') && url !== 'https://thewest.com.au/') {
         removeAllClassEl('css-ac4gl9-StyledFigure')
@@ -109,6 +132,7 @@ function removeAllClassEl(className) {
 }
 
 function addHeader(outletName) {
+    if (!options.metadata) return
     const date = new Intl.DateTimeFormat('en-GB').format(new Date()).toString().replace(/\/20([0-9]{2})/, '/$1')
     let headline, byline, outlet, firstPara
     switch (outletName) {
